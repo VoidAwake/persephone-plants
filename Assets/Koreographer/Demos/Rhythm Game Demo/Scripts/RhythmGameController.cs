@@ -3,8 +3,11 @@
 //    Copyright © 2014-2020 Sonic Bloom, LLC    
 //----------------------------------------------
 
+using System;
 using UnityEngine;
 using System.Collections.Generic;
+using Unity.Mathematics;
+using UnityEngine.Events;
 
 namespace SonicBloom.Koreo.Demos
 {
@@ -30,6 +33,7 @@ namespace SonicBloom.Koreo.Demos
 		[Tooltip("The list of Lane Controller objects that represent a lane for an event to travel down.")]
 		public List<LaneController> noteLanes = new List<LaneController>();
 
+		// TODO: If we ever come back to this, this was causing the track to end early.
 		[Tooltip("The amount of time in seconds to provide before playback of the audio begins.  Changes to this value are not immediately handled during the lead-in phase while playing in the Editor.")]
 		public float leadInTime;
 
@@ -51,7 +55,10 @@ namespace SonicBloom.Koreo.Demos
 		
 		// The pool for containing note objects to reduce unnecessary Instantiation/Destruction.
 		Stack<NoteObject> noteObjectPool = new Stack<NoteObject>();
-
+		
+		public UnityEvent<string> noteHit = new();
+		public UnityEvent<string> noteMissed = new();
+		
 		#endregion
 		#region Properties
 
@@ -177,6 +184,8 @@ namespace SonicBloom.Koreo.Demos
 					timeLeftToPlay = 0f;
 				}
 			}
+			
+			
 		}
 
 		// Update any internal values that depend on externally accessible fields (public or Inspector-driven).
@@ -243,5 +252,46 @@ namespace SonicBloom.Koreo.Demos
 		}
 
 		#endregion
+
+		private void OnEnable()
+		{
+			Koreographer.Instance.RegisterForEvents(eventID, AddImpulse);
+		}
+
+		private void OnDisable()
+		{
+			Koreographer.Instance.UnregisterForEvents(eventID, AddImpulse);
+		}
+
+		private void AddImpulse(KoreographyEvent evt)
+		{
+			if (evt.GetTextValue() == "END")
+			{
+				foreach (var gameObject in enableOnGameOver)
+				{
+					gameObject.SetActive(true);
+					
+					
+				}
+				foreach (var gameObject in setInactiveOnGameOver)
+				{
+					gameObject.SetActive(false);
+					
+					
+				}
+
+				foreach (var monoBehaviour in disableOnGameOver)
+				{
+					monoBehaviour.enabled = false;
+				}
+				
+				persephone.rotation = Quaternion.identity;
+			}
+		}
+
+		[SerializeField] private List<GameObject> enableOnGameOver;
+		[SerializeField] private List<MonoBehaviour> disableOnGameOver;
+		[SerializeField] private List<GameObject> setInactiveOnGameOver;
+		[SerializeField] private Transform persephone;
 	}
 }

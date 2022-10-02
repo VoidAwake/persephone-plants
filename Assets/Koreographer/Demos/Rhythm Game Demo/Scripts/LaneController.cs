@@ -126,6 +126,7 @@ namespace SonicBloom.Koreo.Demos
 			// Clear out invalid entries.
 			while (trackedNotes.Count > 0 && trackedNotes.Peek().IsNoteMissed())
 			{
+				gameController.noteMissed.Invoke(trackedNotes.Peek().trackedEvent.GetTextValue());
 				trackedNotes.Dequeue();
 			}
 
@@ -181,6 +182,7 @@ namespace SonicBloom.Koreo.Demos
 			{
 				NoteObject hitNote = trackedNotes.Dequeue();
 
+				gameController.noteHit.Invoke(hitNote.trackedEvent.GetTextValue());
 				hitNote.OnHit();
 			}
 		}
@@ -219,6 +221,7 @@ namespace SonicBloom.Koreo.Demos
 		//  in the matchedPayloads List.
 		public bool DoesMatchPayload(string payload)
 		{
+			// return true;
 			bool bMatched = false;
 
 			for (int i = 0; i < matchedPayloads.Count; ++i)

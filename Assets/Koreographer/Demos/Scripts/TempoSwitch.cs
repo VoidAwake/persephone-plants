@@ -14,7 +14,8 @@ namespace SonicBloom.Koreo.Demos
 		public Behaviour[] quarterNoteGroup;
 		public Behaviour[] eighthNoteGroup;
 
-		int lastQuarterNote = 0;
+		int lastQuarterNote = 0        
+;
 		int lastEighthNote = -1;
 		
 		void Update()

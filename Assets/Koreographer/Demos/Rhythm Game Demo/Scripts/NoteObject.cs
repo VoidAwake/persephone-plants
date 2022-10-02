@@ -4,6 +4,7 @@
 //----------------------------------------------
 
 using UnityEngine;
+using UnityEngine.Events;
 
 namespace SonicBloom.Koreo.Demos
 {
@@ -16,13 +17,26 @@ namespace SonicBloom.Koreo.Demos
 		public SpriteRenderer visuals;
 
 		// If active, the KoreographyEvent that this Note Object wraps.  Contains the relevant timing information.
-		KoreographyEvent trackedEvent;
+		public KoreographyEvent trackedEvent;
 
 		// If active, the Lane Controller that this Note Object is contained by.
-		LaneController laneController;
+		public LaneController laneController;
 
 		// If active, the Rhythm Game Controller that controls the game this Note Object is found within.
-		RhythmGameController gameController;
+		public RhythmGameController gameController;
+		private int samplesTillPerfect;
+
+		public int SamplesTillPerfect
+		{
+			get => samplesTillPerfect;
+			private set
+			{
+				samplesTillPerfect = value;
+				samplesTillPerfectChanged.Invoke();
+			}
+		}
+
+		public UnityEvent samplesTillPerfectChanged = new();
 
 		#endregion
 		#region Static Methods
@@ -44,7 +58,7 @@ namespace SonicBloom.Koreo.Demos
 			laneController = laneCont;
 			gameController = gameCont;
 
-			UpdatePosition();
+			UpdateSamplesTillPerfect();
 		}
 
 		// Resets the Note Object to its default state.
@@ -59,7 +73,7 @@ namespace SonicBloom.Koreo.Demos
 		{
 			UpdateHeight();
 
-			UpdatePosition();
+			UpdateSamplesTillPerfect();
 
 			if (transform.position.y <= laneController.DespawnY)
 			{
@@ -81,16 +95,11 @@ namespace SonicBloom.Koreo.Demos
 		}
 
 		// Updates the position of the Note Object along the Lane based on current audio position.
-		void UpdatePosition()
+		void UpdateSamplesTillPerfect()
 		{
-			// Get the number of samples we traverse given the current speed in Units-Per-Second.
-			float samplesPerUnit = gameController.SampleRate / gameController.noteSpeed;
-
 			// Our position is offset by the distance from the target in world coordinates.  This depends on
 			//  the distance from "perfect time" in samples (the time of the Koreography Event!).
-			Vector3 pos = laneController.TargetPosition;
-			pos.y -= (gameController.DelayedSampleTime - trackedEvent.StartSample) / samplesPerUnit;
-			transform.position = pos;
+			SamplesTillPerfect = gameController.DelayedSampleTime - trackedEvent.StartSample;
 		}
 
 		// Checks to see if the Note Object is currently hittable or not based on current audio sample
